@@ -447,5 +447,13 @@ class ArgParser(LCArgumentParser):
                 "version of LinkChecker."
             ),
         )
+        group.add_argument(
+            "--auth", 
+            dest="authorization", 
+            metavar="STRING",
+            help=_(
+                "Specify the Authorization header value for HTTP/HTTPS requests."
+            )
+        )
 
         self.add_argument("url", nargs="*")

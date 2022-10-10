@@ -206,6 +206,8 @@ def setup_config(config, options):
             entry["password"] = getpass.getpass(msg)
     if options.useragent is not None:
         config["useragent"] = options.useragent
+    if options.authorization is not None:
+        config["authorization"] = options.authorization
     if options.cookiefile is not None:
         if fileutil.is_readable(options.cookiefile):
             config["cookiefile"] = options.cookiefile
