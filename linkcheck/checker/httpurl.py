@@ -281,11 +281,11 @@ class HttpUrl(internpaturl.InternPatternUrl):
             log.debug(LOG_CHECK, "Redirected to %r", newurl)
             self.aliases.append(newurl)
             # XXX on redirect errors this is not printed
-            self.add_warning(
-                _("Redirected to `%(url)s' status: %(code)d %(reason)s.")
-                % {'url': newurl, 'code': self.url_connection.status_code,
-                   'reason': self.url_connection.reason},
-                tag=WARN_HTTP_REDIRECTED)
+            # self.add_warning(
+            #     _("Redirected to `%(url)s' status: %(code)d %(reason)s.")
+            #     % {'url': newurl, 'code': self.url_connection.status_code,
+            #        'reason': self.url_connection.reason},
+            #     tag=WARN_HTTP_REDIRECTED)
             # Reset extern and recalculate
             self.extern = None
             self.set_extern(newurl)
