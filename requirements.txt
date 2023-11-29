@@ -4,4 +4,4 @@ requests >= 2.28.1
 dnspython >= 2.2.1
 # optional:
 argcomplete >= 1.8.1
-pdfminer.six >= 20181108
+# pdfminer.six >= 20181108
