@@ -289,6 +289,12 @@ class HttpUrl(internpaturl.InternPatternUrl):
             # Reset extern and recalculate
             self.extern = None
             self.set_extern(newurl)
+            if self.extern[0]:
+                self.add_warning(
+                    _("Redirected to `%(url)s' status: %(code)d %(reason)s.")
+                    % {'url': newurl, 'code': self.url_connection.status_code,
+                    'reason': self.url_connection.reason},
+                    tag=WARN_HTTP_REDIRECTED)
             self.urlparts = self.build_url_parts(newurl)
             self.url_connection = response
             self.headers = response.headers
