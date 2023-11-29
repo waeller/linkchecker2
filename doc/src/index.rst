@@ -7,10 +7,10 @@ Check websites for broken links
 
 Introduction
 -------------
-LinkChecker is a free, `GPL <http://www.gnu.org/licenses/gpl-2.0.html>`_
+LinkChecker is a free, `GPL <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>`_
 licensed website validator.
 LinkChecker checks links in web documents or full websites.
-It runs on Python 3 systems, requiring Python 3.7 or later.
+It runs on Python 3 systems, requiring Python 3.8 or later.
 
 Visit the project on `GitHub <https://github.com/linkchecker/linkchecker>`_.
 
@@ -48,11 +48,10 @@ Features
 - recursive and multithreaded checking and site crawling
 - output in colored or normal text, HTML, SQL, CSV, XML or a sitemap
   graph in different formats
-- HTTP/1.1, HTTPS, FTP, mailto:, news:, nntp:, Telnet and local file
-  links support
+- HTTP/1.1, HTTPS, FTP, mailto: and local file links support
 - restriction of link checking with regular expression filters for URLs
 - proxy support
-- username/password authorization for HTTP and FTP and Telnet
+- username/password authorization for HTTP and FTP
 - honors robots.txt exclusion protocol
 - Cookie support
 - HTML5 support
@@ -82,6 +81,14 @@ and test integration.
 .. image:: https://github.com/linkchecker/linkchecker/actions/workflows/build.yml/badge.svg?branch=master
    :alt: Build Status
    :target: https://github.com/linkchecker/linkchecker/actions/workflows/build.yml
+
+Icon
+----
+
+The project icon is categories/applications-development-web from
+`Oxygen icons <https://develop.kde.org/frameworks/oxygen-icons/>`_ copyright KDE
+and licensed under the `GNU LGPL version 3 <https://www.gnu.org/licenses/lgpl-3.0.html>`_
+or later.
 
 .. toctree::
    :hidden:

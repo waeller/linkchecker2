@@ -16,6 +16,8 @@
 """
 Base URL handler.
 """
+# pylint: disable=assignment-from-none, catching-non-exception, no-member
+
 import sys
 import os
 import urllib.parse
@@ -23,7 +25,6 @@ from urllib.request import urlopen
 import time
 import errno
 import socket
-import select
 from io import BytesIO
 
 from . import absolute_url, get_url_from
@@ -55,7 +56,7 @@ from .const import (
 from ..url import url_fix_wayback_query
 
 # schemes that are invalid with an empty hostname
-scheme_requires_host = ("ftp", "http", "telnet")
+scheme_requires_host = ("ftp", "http")
 
 
 def urljoin(parent, url):
@@ -383,11 +384,11 @@ class UrlBase:
         Add a warning string.
         """
         item = (tag, s)
-        if (
-            item not in self.warnings
-            and tag not in self.aggregate.config["ignorewarnings"]
-        ):
-            self.warnings.append(item)
+        if item not in self.warnings:
+            if tag in self.aggregate.config["ignorewarnings"]:
+                self.add_info(s)
+            else:
+                self.warnings.append(item)
 
     def add_info(self, s):
         """
@@ -507,9 +508,9 @@ class UrlBase:
         if not self.port or self.port == urlutil.default_ports.get(self.scheme):
             host = self.host
         else:
-            host = "%s:%d" % (self.host, self.port)
+            host = f"{self.host}:{self.port}"
         if self.userinfo:
-            urlparts[1] = "%s@%s" % (self.userinfo, host)
+            urlparts[1] = f"{self.userinfo}@{host}"
         else:
             urlparts[1] = host
         # save anchor for later checking
@@ -538,7 +539,7 @@ class UrlBase:
             trace.trace_on()
         try:
             self.local_check()
-        except (socket.error, select.error):
+        except OSError:
             # on Unix, ctrl-c can raise
             # error: (4, 'Interrupted system call')
             etype, value = sys.exc_info()[:2]
@@ -624,7 +625,7 @@ class UrlBase:
         # format message "<exception name>: <error message>"
         errmsg = etype.__name__
         if evalue:
-            errmsg += ": %s" % evalue
+            errmsg += f": {evalue}"
         # limit length to 240
         return strformat.limit(errmsg, length=240)
 
@@ -793,7 +794,7 @@ class UrlBase:
             return (split.username, split.password)
         return self.aggregate.config.get_user_password(self.url)
 
-    def add_url(self, url, line=0, column=0, page=0, name="", base=None):
+    def add_url(self, url, line=0, column=0, page=0, name="", base=None, parent=None):
         """Add new URL to queue."""
         if base:
             base_ref = urlutil.url_norm(base, encoding=self.content_encoding)[0]
@@ -803,7 +804,7 @@ class UrlBase:
             url,
             self.recursion_level + 1,
             self.aggregate,
-            parent_url=self.url,
+            parent_url=self.url if parent is None else parent,
             base_ref=base_ref,
             line=line,
             column=column,
@@ -882,7 +883,7 @@ class UrlBase:
         @return: URL info
         @rtype: unicode
         """
-        return "<%s>" % self.serialized(sep=", ")
+        return f'<{self.serialized(sep=", ")}>'
 
     def to_wire_dict(self):
         """Return a simplified transport object for logging and caching.

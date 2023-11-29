@@ -9,9 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         # Needed for hatch-vcs to extract LinkChecker version from tag
         # https://github.com/actions/checkout/issues/249
         with:
@@ -21,7 +22,9 @@ jobs:
         run: sudo apt install git
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
 
       - name: Install Python packages
         run: >
@@ -35,16 +38,28 @@ jobs:
         run: >
             python3 -m hatchling build
 
+      - name: Generate Sigstore signatures
+        uses: sigstore/gh-action-sigstore-python@1a402ed919f6cb88b9bafb523fb65508c442514b
+        with:
+          inputs: dist/*
+
       - name: Check distribution files
         run: >
-            twine check dist/*
+            twine check dist/*.{tar.gz,whl}
 
       - name: Calculate checksums for distribution files
         run: >
-            sha256sum dist/*
+            sha256sum dist/*.{tar.gz,whl}
 
-      - name: Add distribution files to release
+      - name: Add files to release
         run: >
             gh release upload ${{ github.ref_name }} dist/*
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Remove Sigstore files
+        run: >
+            rm -f dist/*.{crt,sig,sigstore}
+
+      - name: Publish distribution files to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

@@ -11,24 +11,26 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 
 dependencies = [
-    "requests >= 2.4",
+    "requests >= 2.20",
     "dnspython >= 2.0",
     "beautifulsoup4 >= 4.8.1",
 ]
 
 [build-system]
 requires = [
-    "hatchling>=1.8.0",
+    "hatchling >= 1.8.0",
     "hatch-vcs",
+    "setuptools-scm >= 7.1.0",
 ]
 build-backend = "hatchling.build"
 
@@ -89,7 +91,6 @@ version_scheme = "post-release"
 
 [tool.hatch.envs.test]
 dependencies = [
-    "miniboa",
     "parameterized",
     "pdfminer.six",
     "pyftpdlib",

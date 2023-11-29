@@ -37,8 +37,6 @@ Notes = _(
  o If your platform does not support threading, LinkChecker disables it
    automatically.
  o You can supply multiple user/password pairs in a configuration file.
- o When checking 'news:' links the given NNTP host doesn't need to be the
-   same as the host of the user browsing your pages.
 """
 )
 
@@ -180,7 +178,7 @@ file entry:
     )
     + "\n".join(
         [
-            " o %s - %s" % (tag, desc)
+            f" o {tag} - {desc}"
             for tag, desc in sorted(checker.const.Warnings.items())
         ]
     )
@@ -384,22 +382,10 @@ class ArgParser(LCArgumentParser):
             ),
         )
         group.add_argument(
-            "-N",
-            "--nntp-server",
-            dest="nntpserver",
-            metavar="STRING",
-            help=_(
-                "Specify an NNTP server for 'news:...' links. Default is the\n"
-                "environment variable NNTP_SERVER. If no host is given,\n"
-                "only the syntax of the link is checked."
-            ),
-        )
-        group.add_argument(
             "-p",
             "--password",
-            action="store_false",
+            action="store_true",
             dest="password",
-            default=False,
             help=_(
                 "Read a password from console and use it for HTTP and FTP authorization.\n"
                 "For FTP the default password is 'anonymous@'. For HTTP there is\n"

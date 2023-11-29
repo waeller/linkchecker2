@@ -11,7 +11,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import unittest
 import sys
 from . import run_checked
@@ -40,3 +40,6 @@ class TestLinkchecker(unittest.TestCase):
             run_with_options([option])
         # unknown option
         self.assertRaises(OSError, run_with_options, ["--imadoofus"])
+        # non-existent FILENAMEs
+        self.assertRaises(OSError, run_with_options, ["--config", "no_such_file"])
+        self.assertRaises(OSError, run_with_options, ["--cookiefile", "no_such_file"])

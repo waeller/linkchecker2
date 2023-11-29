@@ -26,6 +26,7 @@ import requests
 import warnings
 
 warnings.simplefilter(
+    # pylint: disable=no-member
     'ignore', requests.packages.urllib3.exceptions.InsecureRequestWarning
 )
 
@@ -43,7 +44,7 @@ from .. import (
 from . import internpaturl
 
 # import warnings
-from .const import WARN_HTTP_EMPTY_CONTENT, WARN_HTTP_RATE_LIMITED
+from .const import WARN_HTTP_EMPTY_CONTENT, WARN_HTTP_RATE_LIMITED, WARN_HTTP_REDIRECTED
 from requests.sessions import REDIRECT_STATI
 
 HTTP_SCHEMAS = ('http://', 'https://')
@@ -178,6 +179,8 @@ class HttpUrl(internpaturl.InternPatternUrl):
         log.debug(LOG_CHECK, "Response headers %s", self.headers)
         self.set_encoding(self.url_connection.encoding)
         log.debug(LOG_CHECK, "Response encoding %s", self.content_encoding)
+        if "LinkChecker" in self.headers:
+            self.aggregate.set_maxrated_for_host(self.urlparts[1])
         self._add_ssl_info()
 
     def _add_response_info(self):
@@ -227,8 +230,9 @@ class HttpUrl(internpaturl.InternPatternUrl):
             self.auth = (_user, _password)
 
     def set_content_type(self):
-        """Return content MIME type or empty string."""
+        """Set MIME type from HTTP response headers."""
         self.content_type = httputil.get_content_type(self.headers)
+        log.debug(LOG_CHECK, "MIME type: %s", self.content_type)
 
     def set_encoding(self, encoding):
         """Set content encoding"""
@@ -277,7 +281,11 @@ class HttpUrl(internpaturl.InternPatternUrl):
             log.debug(LOG_CHECK, "Redirected to %r", newurl)
             self.aliases.append(newurl)
             # XXX on redirect errors this is not printed
-            self.add_info(_("Redirected to `%(url)s'.") % {'url': newurl})
+            self.add_warning(
+                _("Redirected to `%(url)s' status: %(code)d %(reason)s.")
+                % {'url': newurl, 'code': self.url_connection.status_code,
+                   'reason': self.url_connection.reason},
+                tag=WARN_HTTP_REDIRECTED)
             # Reset extern and recalculate
             self.extern = None
             self.set_extern(newurl)
@@ -347,7 +355,7 @@ class HttpUrl(internpaturl.InternPatternUrl):
         """Parse URLs in HTTP headers Link:."""
         for linktype, linkinfo in self.url_connection.links.items():
             url = linkinfo["url"]
-            name = "Link: header %s" % linktype
+            name = f"Link: header {linktype}"
             self.add_url(url, name=name)
         if 'Refresh' in self.headers:
             from ..htmlutil.linkparse import refresh_re
@@ -378,6 +386,7 @@ class HttpUrl(internpaturl.InternPatternUrl):
             if rtype is not None:
                 # XXX side effect
                 self.content_type = rtype
+                log.debug(LOG_CHECK, "Read MIME type: %s", self.content_type)
         return self.is_content_type_parseable()
 
     def get_robots_txt_url(self):

@@ -46,12 +46,12 @@ HtmlCopyright = (
 HtmlAppInfo = App + ", " + HtmlCopyright
 Url = _release.__url__
 SupportUrl = _release.__support_url__
-UserAgent = "Mozilla/5.0 (compatible; %s/%s; +%s)" % (AppName, Version, Url)
+UserAgent = f"Mozilla/5.0 (compatible; {AppName}/{Version}; +{Url})"
 Freeware = (
     AppName
     + """ comes with ABSOLUTELY NO WARRANTY!
 This is free software, and you are welcome to redistribute it under
-certain conditions. Look at the file `LICENSE' within this distribution."""
+certain conditions. Look at the file `COPYING' within this distribution."""
 )
 
 
@@ -72,8 +72,7 @@ Modules = (
     ("argcomplete", "Argcomplete", None),
     ("GeoIP", "GeoIP", 'lib_version'),  # on Unix systems
     ("pygeoip", "GeoIP", 'lib_version'),  # on Windows systems
-    ("sqlite3", "Pysqlite", 'version'),
-    ("sqlite3", "Sqlite", 'sqlite_version'),
+    ("sqlite3", "SQLite", 'sqlite_version'),
     ("meliae", "Meliae", '__version__'),
 )
 
@@ -82,12 +81,13 @@ def get_modules_info():
     """Return unicode string with detected module info."""
     module_infos = []
     for (mod, name, version_attr) in Modules:
-        if not fileutil.has_module(mod):
+        try:
+            module = importlib.import_module(mod)
+        except ModuleNotFoundError:
             continue
-        if version_attr and hasattr(mod, version_attr):
-            attr = getattr(mod, version_attr)
+        if version_attr and (attr := getattr(module, version_attr, None)):
             version = attr() if callable(attr) else attr
-            module_infos.append("%s %s" % (name, version))
+            module_infos.append(f"{name} {version}")
         else:
             # ignore attribute errors in case library developers
             # change the version information attribute
@@ -149,7 +149,6 @@ class Configuration(dict):
         self["maxrunseconds"] = None
         self["maxrequestspersecond"] = 10
         self["maxhttpredirects"] = 10
-        self["nntpserver"] = os.environ.get("NNTP_SERVER", None)
         self["sslverify"] = True
         self["threads"] = 10
         self["timeout"] = 60
@@ -223,7 +222,7 @@ class Configuration(dict):
         # filter invalid files
         filtered_cfiles = []
         for cfile in cfiles:
-            if not os.path.isfile(cfile):
+            if not fileutil.is_valid_config_source(cfile):
                 log.warn(LOG_CHECK, _("Configuration file %r does not exist."), cfile)
             elif not fileutil.is_readable(cfile):
                 log.warn(LOG_CHECK, _("Configuration file %r is not readable."), cfile)
@@ -304,8 +303,7 @@ class Configuration(dict):
 
     def sanitize_ssl(self):
         """Use local installed certificate file if available.
-        Tries to get system, then certifi, then the own
-        installed certificate file."""
+        Tries to get system, then certifi certificate file."""
         if self["sslverify"] is True:
             try:
                 self["sslverify"] = get_system_cert_file()

@@ -33,11 +33,6 @@ checking
     slash to join directories instead of a backslash. And the given
     directory must end with a slash.
     Command line option: none
-**nntpserver=**\ *STRING*
-    Specify an NNTP server for **news:** links. Default is the
-    environment variable :envvar:`NNTP_SERVER`. If no host is given, only the
-    syntax of the link is checked.
-    Command line option: :option:`--nntp-server`
 **recursionlevel=**\ *NUMBER*
     Check recursively all links up to given depth. A negative depth will
     enable infinite recursion. Default depth is infinite.
@@ -88,7 +83,11 @@ checking
     The default is to queue and check all URLs.
     Command line option: none
 **maxrequestspersecond=**\ *NUMBER*
-    Limit the maximum number of requests per second to one host.
+    Limit the maximum number of HTTP requests per second to one host.
+    The average number of requests per second is approximately one third of the
+    maximum. Values less than 1 and at least 0.001 can be used.
+    To use values greater than 10, the HTTP server must return a
+    "LinkChecker" response header.
     The default is 10.
     Command line option: none
 **robotstxt=**\ [**0**\ \|\ **1**]
@@ -112,7 +111,7 @@ filtering
     Command line option: :option:`--ignore-url`
 **ignorewarnings=**\ *NAME*\ [**,**\ *NAME*...]
     Ignore the comma-separated list of warnings. See `WARNINGS`_ for
-    the list of supported warnings.
+    the list of supported warnings. Messages are logged as information.
     Command line option: none
 **internlinks=**\ *REGEX*
     Regular expression to add more URLs recognized as internal links.
@@ -132,7 +131,7 @@ authentication
 **entry=**\ *REGEX* *USER* [*PASS*] (`MULTILINE`_)
     Provide individual username/password pairs for different links. In
     addition to a single login page specified with **loginurl** multiple
-    FTP, HTTP (Basic Authentication) and telnet links are supported.
+    FTP and HTTP (Basic Authentication) links are supported.
     Entries are a triple (URL regex, username, password) or a tuple (URL
     regex, username), where the entries are separated by whitespace.
     The password is optional and if missing it has to be entered at the
@@ -182,8 +181,8 @@ URL checking results
     https://docs.python.org/library/codecs.html#standard-encodings.
     Command line option: :option:`--output`
 **verbose=**\ [**0**\ \|\ **1**]
-    If set log all checked URLs once. Default is to log only errors and
-    warnings.
+    If set log all checked URLs once, overriding **warnings**.
+    Default is to log only errors and warnings.
     Command line option: :option:`--verbose`
 **warnings=**\ [**0**\ \|\ **1**]
     If set log warnings. Default is to log warnings.
@@ -216,10 +215,9 @@ Application
 """""""""""
 
 **debug=**\ *STRING*\ [**,**\ *STRING*...]
-    Print debugging output for the given modules. Available debug
-    modules are **cmdline**, **checking**, **cache**, **dns**,
-    **thread**, **plugins** and **all**. Specifying **all** is an alias
-    for specifying all available loggers.
+    Print debugging output for the given logger. Available debug
+    loggers are **cmdline**, **checking**, **cache**, **plugin** and **all**.
+    **all** is an alias for all available loggers.
     Command line option: :option:`--debug`
 
 Quiet
@@ -249,6 +247,10 @@ text
     Valid encodings are listed in
     https://docs.python.org/library/codecs.html#standard-encodings.
     Default encoding is the system default locale encoding.
+**wraplength=**\ *NUMBER*
+    The number of characters at which to wrap each message line.
+    The default is 65.
+    Command line option: none
 *color\**
     Color settings for the various log parts, syntax is *color* or
     *type*\ **;**\ *color*. The *type* can be **bold**, **light**,
@@ -472,7 +474,9 @@ options in their section.
 AnchorCheck
 ^^^^^^^^^^^
 
-Checks validity of HTML anchors.
+Checks validity of HTML anchors. When checking local files, URLs with anchors
+that link to directories e.g. "example/#anchor" are not supported. There is no
+such limitation when using http(s).
 
 LocationInfo
 ^^^^^^^^^^^^
@@ -565,6 +569,8 @@ WARNINGS
 The following warnings are recognized in the 'ignorewarnings' config
 file entry:
 
+**file-anchorcheck-directory**
+    A local directory with an anchor, not supported by AnchorCheck.
 **file-missing-slash**
     The file: URL is missing a trailing slash.
 **file-system-path**
@@ -577,12 +583,10 @@ file entry:
     The URL had no content.
 **http-rate-limited**
     Too many HTTP requests.
+**http-redirected**
+    Redirected to a different URL.
 **mail-no-mx-host**
     The mail MX host could not be found.
-**nntp-no-newsgroup**
-    The NNTP newsgroup could not be found.
-**nntp-no-server**
-    No NNTP server was found.
 **url-content-size-zero**
     The URL content size is zero.
 **url-content-too-large**

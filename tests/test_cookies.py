@@ -18,14 +18,16 @@ Test cookie routines.
 """
 
 import os
-import unittest
+from pathlib import Path
 
 import linkcheck.cookies
 import linkcheck.configuration
 import linkcheck.director
 
+from . import TestBase
 
-class TestCookies(unittest.TestCase):
+
+class TestCookies(TestBase):
     """Test cookie routines."""
 
     def test_cookie_parse_multiple_headers(self):
@@ -79,3 +81,10 @@ class TestCookies(unittest.TestCase):
         aggregate.add_request_session()
         session = aggregate.get_request_session()
         self.assertEqual({c.name for c in session.cookies}, {"om", "multiple", "are"})
+
+    def test_empty_cookie_file(self):
+        self.assertRaises(
+            linkcheck.LinkCheckerError,
+            linkcheck.cookies.from_file,
+            Path(__file__).parent / "configuration/data/config.empty",
+        )

@@ -116,7 +116,7 @@ def linkchecker():
 
     # read and parse command line options and arguments
     options = argparser.parse_args()
-    # initialize logging
+    # configure application logging
     if options.debug:
         allowed_debugs = logconf.lognames.keys()
         for _name in options.debug:
@@ -135,11 +135,14 @@ def linkchecker():
         files = []
         if options.configfile:
             path = configuration.normpath(options.configfile)
-            if os.path.isfile(path):
-                files.append(path)
+            if not fileutil.is_valid_config_source(path):
+                raise LinkCheckerError(
+                    _("Config file %s does not exist.") % options.configfile)
+            elif not fileutil.is_readable(path):
+                raise LinkCheckerError(
+                    _("Could not read config file %s.") % options.configfile)
             else:
-                log.warn(
-                    LOG_CMDLINE, _("Unreadable config file: %r"), options.configfile)
+                files.append(path)
         config.read(files=files)
     except LinkCheckerError as msg:
         # config error

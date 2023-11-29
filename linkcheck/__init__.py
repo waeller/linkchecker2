@@ -20,11 +20,11 @@ Main package for link checking.
 # version checks
 import sys
 
-if sys.version_info < (3, 7, 0, 'final', 0):
+if sys.version_info < (3, 8, 0, 'final', 0):
     import platform
 
     raise SystemExit(
-        "This program requires Python 3.7 or later instead of %s."
+        "This program requires Python 3.8 or later instead of %s."
         % platform.python_version()
     )
 
@@ -42,7 +42,7 @@ from .logconf import (
 )
 
 COMMAND_NAME = "linkchecker"
-PACKAGE_NAME = __package__
+PACKAGE_NAME = __spec__.parent
 
 
 def module_path():
@@ -74,7 +74,7 @@ def get_link_pat(arg, strict=False):
     @rtype: dict
     @raises: re.error on invalid regular expressions
     """
-    log.debug(LOG_CHECK, "Link pattern %r strict=%s", arg, strict)
+    log.debug(LOG_CHECK, _("Link pattern %r strict=%s"), arg, strict)
     if arg.startswith('!'):
         pattern = arg[1:]
         negate = True
@@ -84,7 +84,7 @@ def get_link_pat(arg, strict=False):
     try:
         regex = re.compile(pattern)
     except re.error as msg:
-        log.warn(LOG_CHECK, "invalid regular expression %r: %s" % (pattern, msg))
+        log.warn(LOG_CHECK, _("invalid regular expression %r: %s"), pattern, msg)
         raise
     return {
         "pattern": regex,
@@ -93,7 +93,7 @@ def get_link_pat(arg, strict=False):
     }
 
 
-def init_i18n(loc=None):
+def init_i18n():
     """Initialize i18n with the configured locale dir. The environment
     variable LOCPATH can also specify a locale dir.
 
@@ -104,7 +104,7 @@ def init_i18n(loc=None):
     else:
         # Need Python 3.9 for importlib.resources.files
         locdir = os.path.join(__path__[0], 'data', 'locale')
-    i18n.init(COMMAND_NAME, locdir, loc=loc)
+    i18n.init(COMMAND_NAME, locdir)
     # install translated log level names
     import logging
 

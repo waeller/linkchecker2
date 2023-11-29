@@ -19,12 +19,11 @@ Define standard test support classes functional for LinkChecker tests.
 import os
 import re
 import difflib
-import unittest
 import linkcheck.checker
 import linkcheck.configuration
 import linkcheck.director
 import linkcheck.logger
-from .. import get_file
+from .. import get_file, TestBase
 
 # helper alias
 get_url_from = linkcheck.checker.get_url_from
@@ -190,18 +189,12 @@ def get_test_aggregate(confargs, logargs, logger=TestLogger):
     return linkcheck.director.get_aggregate(config)
 
 
-class LinkCheckTest(unittest.TestCase):
+class LinkCheckTest(TestBase):
     """
     Functional test class with ability to test local files.
     """
 
     logger = TestLogger
-
-    def setUp(self):
-        """Ensure the current locale setting is the default.
-        Otherwise, warnings will get translated and will break tests."""
-        super().setUp()
-        linkcheck.init_i18n(loc="C")
 
     def norm(self, url, encoding="utf-8"):
         """Helper function to norm a url."""
@@ -231,7 +224,7 @@ class LinkCheckTest(unittest.TestCase):
         if hasattr(self, "port"):
             d["port"] = self.port
         # all result files are encoded in utf-8
-        with open(resultfile, "r", encoding="utf-8") as f:
+        with open(resultfile, encoding="utf-8") as f:
             return [
                 line.rstrip("\r\n") % d
                 for line in f
@@ -284,11 +277,14 @@ class LinkCheckTest(unittest.TestCase):
         url_data = get_url_from(url, url_reclevel, aggregate, url_encoding=url_encoding)
         aggregate.urlqueue.put(url_data)
         linkcheck.director.check_urls(aggregate)
-        diff = aggregate.config["logger"].diff
+        logger = aggregate.config["logger"]
+        diff = logger.diff
         if diff:
             d = ["Differences found testing %s" % url]
             d.extend(x.rstrip() for x in diff[2:])
             self.fail(os.linesep.join(d))
+        if logger.stats.internal_errors:
+            self.fail("%d internal errors occurred!" % logger.stats.internal_errors)
 
 
 class MailTest(LinkCheckTest):

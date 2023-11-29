@@ -57,6 +57,9 @@ class LCConfigParser(RawConfigParser):
         assert isinstance(files, list), "Invalid file list %r" % files
         try:
             self.read_ok = super().read(files)
+            if not self.sections():
+                raise LinkCheckerError(
+                    _("configuration files %s contain no sections.") % files)
             if len(self.read_ok) < len(files):
                 failed_files = set(files) - set(self.read_ok)
                 log.warn(
@@ -85,6 +88,24 @@ class LCConfigParser(RawConfigParser):
         """Read a boolean option."""
         if self.has_option(section, option):
             self.config[option] = self.getboolean(section, option)
+
+    def read_float_option(self, section, option, key=None, min=None, max=None):
+        """Read a float option."""
+        if self.has_option(section, option):
+            num = self.getfloat(section, option)
+            if min is not None and num < min:
+                raise LinkCheckerError(
+                    _("invalid value for %s: %d must not be less than %d")
+                    % (option, num, min)
+                )
+            if max is not None and num < max:
+                raise LinkCheckerError(
+                    _("invalid value for %s: %d must not be greater than %d")
+                    % (option, num, max)
+                )
+            if key is None:
+                key = option
+            self.config[key] = num
 
     def read_int_option(self, section, option, key=None, min=None, max=None):
         """Read an integer option."""
@@ -176,9 +197,8 @@ class LCConfigParser(RawConfigParser):
         self.read_int_option(section, "timeout", min=1)
         self.read_int_option(section, "aborttimeout", min=1)
         self.read_int_option(section, "recursionlevel", min=-1)
-        self.read_string_option(section, "nntpserver")
         self.read_string_option(section, "useragent")
-        self.read_int_option(section, "maxrequestspersecond", min=1)
+        self.read_float_option(section, "maxrequestspersecond", min=0.001)
         self.read_int_option(section, "maxnumurls", min=0)
         self.read_int_option(section, "maxfilesizeparse", min=1)
         self.read_int_option(section, "maxfilesizedownload", min=1)
@@ -209,7 +229,7 @@ class LCConfigParser(RawConfigParser):
                     self.config.add_auth(
                         pattern=auth[0], user=auth[1], password=auth[2]
                     )
-                    password_fields.append("entry/%s/%s" % (auth[0], auth[1]))
+                    password_fields.append(f"entry/{auth[0]}/{auth[1]}")
                 elif len(auth) == 2:
                     self.config.add_auth(pattern=auth[0], user=auth[1])
                 else:

@@ -28,7 +28,6 @@ from .. import LOG_CMDLINE
 from .. import get_link_pat, log
 
 from ..cmdline import print_version, print_usage, print_plugins
-from ..director import console
 
 
 def has_encoding(encoding):
@@ -152,8 +151,6 @@ def setup_config(config, options):
                 )
             new_logger = config.logger_new(ftype, **ns)
             config["fileoutput"].append(new_logger)
-    if options.nntpserver:
-        config["nntpserver"] = options.nntpserver
     if options.username:
         _username = options.username
         constructauth = True
@@ -164,7 +161,7 @@ def setup_config(config, options):
             }
         else:
             msg = _("Enter LinkChecker HTTP/FTP password:")
-        _password = getpass.getpass(console.encode(msg))
+        _password = getpass.getpass(msg)
         constructauth = True
     if options.quiet:
         config["logger"] = config.logger_new("none")
@@ -190,8 +187,6 @@ def setup_config(config, options):
         if options.verbose:
             config["verbose"] = True
             config["warnings"] = True
-    if options.cookiefile is not None:
-        config["cookiefile"] = options.cookiefile
     if constructauth:
         config.add_auth(pattern=".+", user=_username, password=_password)
     # read missing passwords
@@ -209,8 +204,11 @@ def setup_config(config, options):
     if options.authorization is not None:
         config["authorization"] = options.authorization
     if options.cookiefile is not None:
-        if fileutil.is_readable(options.cookiefile):
-            config["cookiefile"] = options.cookiefile
+        if not fileutil.is_valid_config_source(options.cookiefile):
+            print_usage(
+                _("Cookie file %s does not exist.") % options.cookiefile)
+        elif not fileutil.is_readable(options.cookiefile):
+            print_usage(
+                _("Could not read cookie file %s") % options.cookiefile)
         else:
-            msg = _("Could not read cookie file %s") % options.cookiefile
-            log.error(LOG_CMDLINE, msg)
+            config["cookiefile"] = options.cookiefile

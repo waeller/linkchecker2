@@ -16,11 +16,10 @@ LinkChecker features
 -  recursive and multithreaded checking
 -  output in colored or normal text, HTML, SQL, CSV, XML or a sitemap
    graph in different formats
--  support for HTTP/1.1, HTTPS, FTP, mailto:, news:, nntp:, Telnet and
-   local file links
+-  support for HTTP/1.1, HTTPS, FTP, mailto: and local file links
 -  restriction of link checking with URL filters
 -  proxy support
--  username/password authorization for HTTP, FTP and Telnet
+-  username/password authorization for HTTP and FTP
 -  support for robots.txt exclusion protocol
 -  support for Cookies
 -  support for HTML5
@@ -142,7 +141,8 @@ URL checking results
 
 .. option:: -v, --verbose   
 
-    Log all checked URLs. Default is to log only errors and warnings.
+    Log all checked URLs, overriding :option:`--no-warnings`.
+    Default is to log only errors and warnings.
 
 Progress updates
 """"""""""""""""
@@ -157,7 +157,7 @@ Application
 .. option:: -D STRING, --debug=STRING
 
     Print debugging output for the given logger.
-    Available loggers are cmdline, checking, cache, plugin and all.
+    Available debug loggers are cmdline, checking, cache, plugin and all.
     all is an alias for all available loggers.
     This option can be given multiple times to debug with more than one logger.
 
@@ -175,7 +175,7 @@ Checking options
 
 .. option:: --cookiefile=FILENAME
 
-    Read a file with initial cookie data. The cookie data format is
+    Use initial cookie data read from a file. The cookie data format is
     explained below.
 
 .. option:: --check-extern
@@ -187,12 +187,6 @@ Checking options
     URLs matching the given regular expression will only be syntax checked.
     This option can be given multiple times.
     See section `REGULAR EXPRESSIONS`_ for more info.
-
-.. option:: -N STRING, --nntp-server=STRING
-
-    Specify an NNTP server for news: links. Default is the
-    environment variable :envvar:`NNTP_SERVER`. If no host is given, only the
-    syntax of the link is checked.
 
 .. option:: --no-follow-url=REGEX
 
@@ -409,14 +403,6 @@ FTP links (**ftp:**)
     3. try to change to the given directory
     4. list the file with the NLST command
 
-Telnet links (**telnet:**)
-    We try to connect and if user/password are given, login to the given
-    telnet server.
-
-NNTP links (**news:**, **snews:**, **nntp**)
-    We try to connect to the given NNTP server. If a news group or
-    article is specified, try to request it from the server.
-
 Unsupported links (**javascript:**, etc.)
     An unsupported link will only print a warning. No further checking
     will be made.
@@ -425,6 +411,15 @@ Unsupported links (**javascript:**, etc.)
     in the
     `linkcheck/checker/unknownurl.py <https://github.com/linkchecker/linkchecker/blob/master/linkcheck/checker/unknownurl.py>`__
     source file. The most prominent of them should be JavaScript links.
+
+SITEMAPS
+--------
+
+Sitemaps are parsed for links to check and can be detected either from a
+sitemap entry in a robots.txt, or when passed as a :option:`FILE-OR-URL`
+argument in which case detection requires the urlset/sitemapindex tag to be
+within the first 70 characters of the sitemap.
+Compressed sitemap files are not supported.
 
 PLUGINS
 -------
@@ -480,15 +475,8 @@ automatically.
 
 You can supply multiple user/password pairs in a configuration file.
 
-When checking **news:** links the given NNTP host doesn't need to be the
-same as the host of the user browsing your pages.
-
 ENVIRONMENT
 -----------
-
-.. envvar:: NNTP_SERVER
-
-   specifies default NNTP server
 
 .. envvar:: http_proxy
 

@@ -50,6 +50,7 @@
 [text]
 #filename=linkchecker-out.txt
 #parts=all
+#wraplength=65
 # colors for the various parts, syntax is <color> or <type>;<color>
 # type can be bold, light, blink, invert
 # color can be default, black, red, green, yellow, blue, purple, cyan, white,
@@ -145,8 +146,6 @@
 #aborttimeout=300
 # The recursion level determines how many times links inside pages are followed.
 #recursionlevel=-1
-# Basic NNTP server. Overrides NNTP_SERVER environment variable.
-#nntpserver=
 # parse a cookiefile for initial cookie data, example:
 #cookiefile=/path/to/cookies.txt
 # User-Agent header string to send to HTTP web servers

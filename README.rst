@@ -15,10 +15,10 @@ Features
 
 - recursive and multithreaded checking and site crawling
 - output in colored or normal text, HTML, SQL, CSV, XML or a sitemap graph in different formats
-- HTTP/1.1, HTTPS, FTP, mailto:, news:, nntp:, Telnet and local file links support
+- HTTP/1.1, HTTPS, FTP, mailto: and local file links support
 - restrict link checking with regular expression filters for URLs
 - proxy support
-- username/password authorization for HTTP, FTP and Telnet
+- username/password authorization for HTTP and FTP
 - honors robots.txt exclusion protocol
 - Cookie support
 - HTML5 support
@@ -28,9 +28,11 @@ Features
 Installation
 -------------
 
-Python 3.7 or later is needed. Using pip to install LinkChecker:
+Python 3.8 or later is needed. Using pip to install LinkChecker:
 
 ``pip3 install linkchecker``
+
+pipx can also be used to install LinkChecker.
 
 The version in the pip repository may be old, to find out how to get the latest
 code, plus platform-specific information and other advice see `doc/install.txt`_

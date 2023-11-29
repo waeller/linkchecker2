@@ -45,13 +45,21 @@ def new_request_session(config, cookies):
         {"User-Agent": config["useragent"]}
     )
     if config["cookiefile"]:
-        for cookie in from_file(config["cookiefile"]):
-            session.cookies.set_cookie(cookie)
+        try:
+            for cookie in from_file(config["cookiefile"]):
+                session.cookies.set_cookie(cookie)
+        except Exception as msg:
+            log.error(
+                LOG_CHECK,
+                _("Could not parse cookie file: %s. %s"), config["cookiefile"], msg
+            )
     return session
 
 
 class Aggregate:
     """Store thread-safe data collections for checker threads."""
+    wait_time_min_default = 0.1
+    wait_time_max_default = 0.6
 
     def __init__(self, config, urlqueue, robots_txt, plugin_manager, result_cache):
         """Store given link checking objects."""
@@ -64,10 +72,11 @@ class Aggregate:
         self.plugin_manager = plugin_manager
         self.result_cache = result_cache
         self.times = {}
+        self.maxrated = {}
         self.cookies = None
         requests_per_second = config["maxrequestspersecond"]
         self.wait_time_min = 1.0 / requests_per_second
-        self.wait_time_max = max(self.wait_time_min + 0.5, 0.5)
+        self.wait_time_max = 6 * self.wait_time_min
         self.downloaded_bytes = 0
 
     def visit_loginurl(self):
@@ -152,8 +161,21 @@ class Aggregate:
                 wait = due_time - t
                 time.sleep(wait)
                 t = time.time()
-        wait_time = random.uniform(self.wait_time_min, self.wait_time_max)
+        if host in self.maxrated:
+            wait_time_min, wait_time_max = self.wait_time_min, self.wait_time_max
+        else:
+            wait_time_min = max(self.wait_time_min, self.wait_time_min_default)
+            wait_time_max = max(self.wait_time_max, self.wait_time_max_default)
+        log.debug(LOG_CHECK,
+                  "Min wait time: %s Max wait time: %s for host: %s",
+                  wait_time_min, wait_time_max, host)
+        wait_time = random.uniform(wait_time_min, wait_time_max)
         self.times[host] = t + wait_time
+
+    @synchronized(_hosts_lock)
+    def set_maxrated_for_host(self, host):
+        """Remove the limit on the maximum request rate for a host."""
+        self.maxrated[host] = True
 
     @synchronized(_threads_lock)
     def print_active_threads(self):

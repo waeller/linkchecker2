@@ -18,7 +18,7 @@ Handle FTP links.
 """
 
 import ftplib
-from io import StringIO
+from io import BytesIO
 
 from .. import log, LOG_CHECK, LinkCheckerError, mimeutil
 from . import internpaturl, get_index_html
@@ -118,7 +118,7 @@ class FtpUrl(internpaturl.InternPatternUrl):
             # file found
             return
         # it could be a directory if the trailing slash was forgotten
-        if "%s/" % self.filename in files:
+        if f"{self.filename}/" in files:
             if not self.url.endswith('/'):
                 self.add_warning(
                     _("Missing trailing directory slash in ftp url."),
@@ -166,6 +166,7 @@ class FtpUrl(internpaturl.InternPatternUrl):
         """Set URL content type, or an empty string if content
         type could not be found."""
         self.content_type = mimeutil.guess_mimetype(self.url, read=self.get_content)
+        log.debug(LOG_CHECK, "MIME type: %s", self.content_type)
 
     def read_content(self):
         """Return URL target content, or in case of directories a dummy HTML
@@ -177,13 +178,13 @@ class FtpUrl(internpaturl.InternPatternUrl):
             data = get_index_html(self.files)
         else:
             # download file in BINARY mode
-            ftpcmd = "RETR %s" % self.filename
-            buf = StringIO()
+            ftpcmd = f"RETR {self.filename}"
+            buf = BytesIO()
 
             def stor_data(s):
                 """Helper method storing given data"""
                 # limit the download size
-                if (buf.tell() + len(s)) > self.max_size:
+                if (buf.tell() + len(s)) > self.aggregate.config["maxfilesizedownload"]:
                     raise LinkCheckerError(_("FTP file size too large"))
                 buf.write(s)
 

@@ -17,10 +17,11 @@
 Test config parsing.
 """
 
-import unittest
 import os
 from re import Pattern
 import linkcheck.configuration
+
+from .. import TestBase
 
 
 def get_file(filename=None):
@@ -31,12 +32,11 @@ def get_file(filename=None):
     return directory
 
 
-class TestConfig(unittest.TestCase):
+class TestConfig(TestBase):
     """Test configuration parsing."""
 
     def test_confparse(self):
-        # Tests must either cover every possiblity or
-        # use a value other than the default
+        # Tests must not use the default value only
         config = linkcheck.configuration.Configuration()
         files = [get_file("config0.ini")]
         config.read(files)
@@ -48,13 +48,13 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config["timeout"], 42)
         self.assertEqual(config["aborttimeout"], 99)
         self.assertEqual(config["recursionlevel"], 1)
-        self.assertEqual(config["nntpserver"], "example.org")
         self.assertEqual(config["cookiefile"], "blablabla")
         self.assertEqual(config["useragent"], "Example/0.0")
         self.assertEqual(config["debugmemory"], 1)
         self.assertEqual(config["localwebroot"], "foo")
         self.assertEqual(config["sslverify"], "/path/to/cacerts.crt")
         self.assertEqual(config["maxnumurls"], 1000)
+        self.assertEqual(config["maxrequestspersecond"], 0.1)
         self.assertEqual(config["maxrunseconds"], 1)
         self.assertEqual(config["maxfilesizeparse"], 100)
         self.assertEqual(config["maxfilesizedownload"], 100)
@@ -63,7 +63,7 @@ class TestConfig(unittest.TestCase):
         patterns = [x["pattern"].pattern for x in config["externlinks"]]
         for prefix in ("ignore_", "nofollow_"):
             for suffix in ("1", "2"):
-                key = "%simadoofus%s" % (prefix, suffix)
+                key = f"{prefix}imadoofus{suffix}"
                 self.assertTrue(key in patterns)
         for key in ("url-unicode-domain",):
             self.assertTrue(key in config["ignorewarnings"])
@@ -118,6 +118,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config["text"]["filename"], "imadoofus.txt")
         self.assertEqual(config["text"]["parts"], ["realurl"])
         self.assertEqual(config["text"]["encoding"], "utf-8")
+        self.assertEqual(config["text"]["wraplength"], "80")
         self.assertEqual(config["text"]["colorparent"], "blink;red")
         self.assertEqual(config["text"]["colorurl"], "blink;red")
         self.assertEqual(config["text"]["colorname"], "blink;red")
@@ -190,3 +191,13 @@ class TestConfig(unittest.TestCase):
         # blacklist logger section
         self.assertEqual(config["failures"]["filename"], "blacklist")
         self.assertEqual(config["failures"]["encoding"], "utf-8")
+
+    def test_confparse_empty(self):
+        config = linkcheck.configuration.Configuration()
+        files = [get_file("config.empty")]
+        self.assertRaises(linkcheck.LinkCheckerError, config.read, files)
+
+    def test_confparse_missing(self):
+        config = linkcheck.configuration.Configuration()
+        files = [get_file("no_such_config")]
+        self.assertRaises(linkcheck.LinkCheckerError, config.read, files)

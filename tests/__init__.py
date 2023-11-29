@@ -18,10 +18,24 @@ import subprocess
 import os
 import sys
 import socket
+import unittest
 import pytest
 from contextlib import contextmanager
 from functools import lru_cache, wraps
-from linkcheck import LinkCheckerInterrupt
+from linkcheck import init_i18n, LinkCheckerInterrupt
+
+
+class TestBase(unittest.TestCase):
+    """
+    Base class for tests.
+    """
+
+    def setUp(self):
+        """Ensure the current locale setting is the default.
+        Otherwise, warnings will get translated and will break tests."""
+        super().setUp()
+        os.environ["LANG"] = "C"
+        init_i18n()
 
 
 def run(cmd, verbosity=0, **kwargs):
@@ -164,33 +178,6 @@ def has_pyftpdlib():
 
 
 need_pyftpdlib = _need_func(has_pyftpdlib, "pyftpdlib")
-
-
-@lru_cache(1)
-def has_newsserver(server):
-    import nntplib
-
-    try:
-        nntp = nntplib.NNTP(server, usenetrc=False)
-        nntp.quit()
-        return True
-    except nntplib.NNTPError:
-        return False
-
-
-def need_newsserver(server):
-    """Decorator skipping test if newsserver is not available."""
-
-    def check_func(func):
-        def newfunc(*args, **kwargs):
-            if not has_newsserver(server):
-                pytest.skip("Newsserver `%s' is not available" % server)
-            return func(*args, **kwargs)
-
-        newfunc.__name__ = func.__name__
-        return newfunc
-
-    return check_func
 
 
 @lru_cache(1)
