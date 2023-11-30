@@ -74,3 +74,4 @@ url file://%(curdir)s/%(datadir)s/anchor1.html
 cache key file://%(curdir)s/%(datadir)s/anchor1.html
 real url file://%(curdir)s/%(datadir)s/anchor1.html
 valid
+

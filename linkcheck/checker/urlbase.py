@@ -400,6 +400,10 @@ class UrlBase:
     def set_cache_url(self):
         """Set the URL to be used for caching."""
         if "AnchorCheck" in self.aggregate.config["enabledplugins"]:
+            log.debug(
+                LOG_CHECK,
+                "set_cache_url: self.url: %s; self.anchor: %s; self.urlparts[4]: %s",
+                self.url, self.anchor, self.urlparts[4])
             self.cache_url = self.url
         else:
             # remove anchor from cached target url since we assume
@@ -743,8 +747,27 @@ class UrlBase:
 
     def get_soup(self):
         if self.soup is None:
-            self.get_content()
+            self.get_content()  # sets self.soup
         return self.soup
+
+    def make_soup(self, encoding):
+        if self.soup is None:
+            url_without_anchor = self.url_without_anchor()
+            soup = self.aggregate.anchor_cache.get(url_without_anchor, 'soup')
+            if soup is not None:
+                self.soup = soup
+            else:
+                self.soup = htmlsoup.make_soup(self.data, encoding)
+                self.aggregate.anchor_cache.put(url_without_anchor, 'soup', self.soup)
+        return self.soup
+
+    def url_without_anchor(self):
+        urlparts = list(urllib.parse.urlsplit(self.url))
+        urlparts[4] = ''
+        return urlutil.urlunsplit(urlparts)
+
+    def get_anchor(self):
+        return self.urlparts[4]
 
     def get_raw_content(self):
         if self.data is None:
@@ -754,7 +777,7 @@ class UrlBase:
     def get_content(self, encoding=None):
         if self.text is None:
             self.get_raw_content()
-            self.soup = htmlsoup.make_soup(self.data, encoding)
+            self.make_soup(encoding)  # sets self.soup
             # Sometimes soup.original_encoding is None!  Better mangled text
             # than an internal crash, eh?  ISO-8859-1 is a safe fallback in the
             # sense that any binary blob can be decoded, it'll never cause a

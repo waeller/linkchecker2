@@ -1,3 +1,8 @@
+
+# NOTE: all the % characters that are really in the URLs have to be escaped (as "%%")
+
+# NOTE: this file and the equivalent file without `.file.` in its name should be semantically the same!
+
 url file://%(curdir)s/%(datadir)s/urlencoding_anchor.html
 cache key file://%(curdir)s/%(datadir)s/urlencoding_anchor.html
 real url file://%(curdir)s/%(datadir)s/urlencoding_anchor.html
@@ -40,3 +45,4 @@ cache key file://%(curdir)s/%(datadir)s/urlencoding_anchor.html#with_pipes_%%7C_
 real url file://%(curdir)s/%(datadir)s/urlencoding_anchor.html#with_pipes_%%7C_and_parentheses_(and%%E2%%80%%94em-dashes)
 name Non-encoded anchor
 valid
+

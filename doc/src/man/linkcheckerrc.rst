@@ -102,6 +102,11 @@ checking
     Set the result cache size.
     The default is 100 000 URLs.
     Command line option: none
+**anchorcachesize=**\ *NUMBER*
+    Set the anchor cache size.
+    The anchor cache improved performance when AnchorCheck is enabled.
+    The default is 2 000 URLs.
+    Command line option: none
 
 filtering
 ^^^^^^^^^
