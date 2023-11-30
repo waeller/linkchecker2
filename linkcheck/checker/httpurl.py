@@ -168,7 +168,7 @@ class HttpUrl(internpaturl.InternPatternUrl):
         if apidoc_match:
             adapted_apidoc_url = "/files/environment/project1_p/documents/apidoc/" + apidoc_match.group(1) + "/index.html"
             self.add_warning(
-                    _("Getting `%(adapted)s' instead of %(url)s.")
+                    _("Getting %(adapted)s instead of %(url)s.")
                     % {'url': self.urlparts[2], 'adapted': adapted_apidoc_url},
                     tag=WARN_HTTP_REDIRECTED)
             self.urlparts[2] = adapted_apidoc_url
