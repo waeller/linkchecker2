@@ -167,10 +167,11 @@ class HttpUrl(internpaturl.InternPatternUrl):
         apidoc_match = re.match(r"/doc/api/([^/]+)/index.html", self.urlparts[2])
         if apidoc_match:
             adapted_apidoc_url = "/files/environment/project1_p/documents/apidoc/" + apidoc_match.group(1) + "/index.html"
-            self.add_warning(
-                    _("Getting %(adapted)s instead of %(url)s.")
-                    % {'url': self.urlparts[2], 'adapted': adapted_apidoc_url},
-                    tag=WARN_HTTP_REDIRECTED)
+            # self.add_warning(
+            #         _("Getting %(adapted)s instead of %(url)s.")
+            #         % {'url': self.urlparts[2], 'adapted': adapted_apidoc_url},
+            #         tag=WARN_HTTP_REDIRECTED)
+            log.debug(LOG_CHECK, "Getting %s instead of %s", adapted_apidoc_url, self.urlparts[2])
             self.urlparts[2] = adapted_apidoc_url
             self.url = urlutil.urlunsplit(self.urlparts)
         return self.url
