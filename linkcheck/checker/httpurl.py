@@ -155,13 +155,26 @@ class HttpUrl(internpaturl.InternPatternUrl):
             clientheaders["Authorization"] = self.aggregate.config["authorization"]
         if self.parent_url and self.parent_url.lower().startswith(HTTP_SCHEMAS):
             clientheaders["Referer"] = self.parent_url
-        kwargs = dict(method='GET', url=self.url, headers=clientheaders)
+        url = self.adapt_apidoc_url()
+        kwargs = dict(method='GET', url=url, headers=clientheaders)
         if self.auth:
             kwargs['auth'] = self.auth
         log.debug(LOG_CHECK, "Prepare request with %s", kwargs)
         request = requests.Request(**kwargs)
         return self.session.prepare_request(request)
 
+    def adapt_apidoc_url(self):
+        apidoc_match = re.match(r"/doc/api/([^/]+)/index.html", self.urlparts[2])
+        if apidoc_match:
+            adapted_apidoc_url = "/files/environment/project1_p/documents/apidoc/" + apidoc_match.group(1) + "/index.html"
+            self.add_warning(
+                    _("Getting `%(adapted)s' instead of %(url)s.")
+                    % {'url': self.urlparts[2], 'adapted': adapted_apidoc_url},
+                    tag=WARN_HTTP_REDIRECTED)
+            self.urlparts[2] = adapted_apidoc_url
+            self.url = urlutil.urlunsplit(self.urlparts)
+        return self.url
+        
     def send_request(self, request):
         """Send request and store response in self.url_connection."""
         # throttle the number of requests to each host
