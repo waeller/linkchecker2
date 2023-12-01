@@ -164,7 +164,7 @@ class HttpUrl(internpaturl.InternPatternUrl):
         return self.session.prepare_request(request)
 
     def adapt_apidoc_url(self):
-        apidoc_match = re.match(r"/doc/api/([^/]+)/index.html", self.urlparts[2])
+        apidoc_match = re.match(r"/doc/api/([^/]+)/", self.urlparts[2])
         if apidoc_match:
             adapted_apidoc_url = "/files/environment/project1_p/documents/apidoc/" + apidoc_match.group(1) + "/index.html"
             # self.add_warning(
